@@ -1,0 +1,29 @@
+#!/usr/bin/env zsh
+
+set -e
+
+# bundle
+echo "==== Bundling... ===="
+echo
+echo "Bundling to single file..."
+echo
+echo "============"
+deno bundle --unstable index.ts dist/postr.ts
+echo "============"
+echo
+
+# binaries
+
+for target in 'x86_64-unknown-linux-gnu' 'x86_64-pc-windows-msvc' 'x86_64-apple-darwin' 'aarch64-apple-darwin'
+do
+	echo "Compiling for $target"
+	echo
+	echo "============"
+	eval "deno compile --allow-read --allow-write --unstable -o dist/postr-$target --target $target index.ts"
+	echo "============"
+	echo
+
+
+	chmod +x dist/postr-$target || chmod +x dist/postr-$target.exe
+
+done
