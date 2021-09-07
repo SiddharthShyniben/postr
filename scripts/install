@@ -19,7 +19,7 @@ do
 	echo "Compiling for $target"
 	echo
 	echo "============"
-	eval "deno compile --allow-read --allow-write --unstable -o dist/postr-$target --target $target index.ts"
+	eval "deno compile --allow-read --allow-write --unstable --quiet -o dist/postr-$target --target $target index.ts"
 	echo "============"
 	echo
 
