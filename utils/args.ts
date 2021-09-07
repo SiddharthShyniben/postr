@@ -11,6 +11,11 @@ export class ArgvParser {
 		if (this.argv._[0] == name) handler(this.argv);
 		return this;
 	}
+
+	defaultCommand(handler: () => void) {
+		if (this.argv._.length === 0) handler();
+		return this;
+	}
 }
 
 // Sugar

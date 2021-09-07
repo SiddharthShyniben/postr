@@ -6,3 +6,6 @@ export {parse};
 export type {Args, ArgParsingOptions};
 export {parseToml, stringifyToml};
 export {existsSync}
+
+// Not a dep
+export const VERSION = '0.0.0';

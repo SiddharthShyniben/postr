@@ -1,4 +1,5 @@
 import {parseArgs} from './utils/args.ts';
+import {VERSION} from './deps/ts';
 
 import {handleInit} from './commands/init.ts';
 import {handleNew} from './commands/new.ts';
@@ -9,6 +10,11 @@ parseArgs(Deno.args, {
 		alias: {
 			f: 'force',
 		}
-	}).command('init', handleInit)
-		.command('new', handleNew)
-		.command('refresh', handleRefresh);
+})
+	.defaultCommand(() => {
+		console.log('postr ' + VERSION);
+		console.log('Run `postr help` to view the help');
+	})
+	.command('init', handleInit)
+	.command('new', handleNew)
+	.command('refresh', handleRefresh);
