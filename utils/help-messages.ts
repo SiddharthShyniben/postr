@@ -1,4 +1,4 @@
-export const helpMessages: {[command: string]: any} = {
+export const helpMessages: Record<string, string> = {
 	_default: `*postr:* The ultimate blogging tool
 
 Available commands:
@@ -7,8 +7,8 @@ Available commands:
   *refresh*:           The main command to publish/unpublish/update posts and run plugins.
   *help* _<command>_:    Show help for _<command>_. If _<command>_ is not provided,
                      This message will be shown.`,
-	init: `*postr init:* Initializes the current directory as a postr directory`,
-	new: `*postr new*: Generates a new post.`,
+	init: '*postr init:* Initializes the current directory as a postr directory',
+	new: '*postr new*: Generates a new post.',
 	refresh: `*postr refresh:* This is an all in one command for:
 
                1. Updating any changed posts

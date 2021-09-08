@@ -4,14 +4,16 @@ export function getConfig() {
 	return ifConfigExists(() => parseToml(await Deno.readTextFile('postr.toml')));
 }
 
-export function setConfig(config) {
+export function setConfig(config: Record<any, any>) {
 	return ifConfigExists(() => Deno.writeTextFile('postr.toml', stringifyToml(config)));
 }
 
-function ifConfigExists(action: (...args: any) => any) {
+function ifConfigExists(action: (...args: unknown[]) => unknown): unknown {
 	const configExists = existsSync('postr.toml');
 
 	if (configExists) {
 		return action();
-	} else throw new Error('fatal: not a postr directory');
+	}
+
+	throw new Error('fatal: not a postr directory');
 }
