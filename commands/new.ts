@@ -14,9 +14,14 @@ export function handleNew(argv: Args) {
 	if (name) {
 		const slug = slugify(name.toString());
 
-		ensureFile(`${slug}/post.md`);
-		ensureDir(`${slug}/assets/images`);
-		Deno.writeTextFile(`${slug}/post.md`, `---\ntitle: ${name}---\n\n_What amazing things will you write today?_`)
+		if (existsSync(slug)) {
+			console.error('fatal: post with the same slug exists.')
+			Deno.exit(1);
+		}
+
+		ensureFile(`${slug}/post.md`)
+			.then(() => ensureDir(`${slug}/assets/images`))
+			.then(() => Deno.writeTextFile(`${slug}/post.md`, `---\ntitle: ${name}\n---\n\n_What amazing things will you write today?_`));
 	} else {
 		console.error('fatal: no name was provided');
 		Deno.exit(1);
