@@ -6,12 +6,10 @@ import {hl, fail} from '../utils/ui.ts'
  * Initialize a new postr directory
  */
 export function handleHelp({_}: Args) {
-	const key: string | number | undefined = _[1] ?? '_default';
-	const message = helpMessages[key.toString()];
+	const key: string = (_[1] ?? '_default').toString();
+	const message = helpMessages[key];
 
 	if (!message) fail('command not found');
 
-	console.log(
-		hl(message)
-	);
+	console.log(hl(message));
 }

@@ -1,5 +1,5 @@
 export const fail = (why: string) => {
-	console.error(hl(`_fatal:_ ${why}`));
+	console.error(`\u001B[31;1mfatal\u001B[0m ${why}`);
 	Deno.exit(1);
 }
 
