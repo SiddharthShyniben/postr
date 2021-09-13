@@ -6,12 +6,21 @@ import {hl, fail} from '../utils/ui.ts'
  * Initialize a new postr directory
  */
 export function handleHelp({_}: Args) {
-	const key: string | number | undefined = _[1] ?? '_default';
-	const message = helpMessages[key.toString()];
+	const key: string | number | undefined = _[1];
 
-	if (!message) fail('command not found');
+	if (!key) {
+		console.log(hl(helpMessages._default));
+		return;
+	}
+
+	if (!(key in helpMessages)) fail('command not found')
 
 	console.log(
-		hl(message)
+		hl(
+			// Hacky typing
+			getKeyValue(key.toString())(helpMessages)
+		)
 	);
 }
+
+const getKeyValue = (key: string) => (obj: Record<string, any>) => obj[key];
