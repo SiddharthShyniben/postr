@@ -14,8 +14,7 @@ parseArgs(Deno.args, {
 }).defaultCommand(() => {
 	console.log('postr ' + VERSION);
 	console.log('Run `postr help` to view the help');
-})
-	.command('init', handleInit)
+}).command('init', handleInit)
 	.command('help', handleHelp)
 	.command('new', handleNew)
 	.command('refresh', handleRefresh);
