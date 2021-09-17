@@ -50,4 +50,4 @@ function extractFrontMatter(contents: string) {
 	return {parsedFrontMatter, contents: contents.replace(frontMatterRegex, '')}
 }
 
-const isObject = (thing: any) => Object.prototype.toString.call(thing) !== '[object Object]'
+const isObject = (thing: any) => Object.prototype.toString.call(thing) === '[object Object]';
