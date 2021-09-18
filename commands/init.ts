@@ -9,7 +9,7 @@ export async function handleInit({force}: Args) {
 
 	if (configExists && !force) fail('config already exists. Run with --force to reinitialize');
 
-	await Deno.writeTextFile('postr.toml', '# Todo');
+	await Deno.writeTextFile('postr.toml', `[adapterPlugins]\n\n# Add your adapter plugins here`);
 	await ensureFile('includes/sample.md')
 	await ensureDir('posts')
 	await Deno.writeTextFile('includes/sample.md', `This is an include. You can include the contents of this file

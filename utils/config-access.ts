@@ -1,7 +1,7 @@
 import {existsSync, parseToml, stringifyToml} from './deps.ts';
 
 export function getConfig() {
-	return ifConfigExists(() => parseToml(await Deno.readTextFile('postr.toml')));
+	return ifConfigExists(() => parseToml(await Deno.readTextFile('postr.toml').trim()));
 }
 
 export function setConfig(config: Record<any, any>) {
