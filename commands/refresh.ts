@@ -1,4 +1,5 @@
 import {Args, expandGlob, existsSync, parseToml} from '../deps.ts';
+import {shouldPostBeChecked} from '../utils/post-checker.ts';
 import {fail} from '../utils/ui.ts';
 
 const read = Deno.readTextFile;
@@ -19,6 +20,8 @@ export async function handleRefresh(_argv: Args) {
 
 		const {parsedFrontMatter, contents} = extractFrontMatter(await read(post.path + '/post.md'));
 		const adapters = parsedFrontMatter.adapters ?? [];
+
+		if (!shouldPostBeChecked(parsedFrontMatter)) continue;
 
 		if (!Array.isArray(adapters)) {
 			fail('adapters is not an array');
