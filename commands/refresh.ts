@@ -16,12 +16,13 @@ export async function handleRefresh(_argv: Args) {
 
 		const {parsedFrontMatter, contents} = extractFrontMatter(await Deno.readTextFile(post.path + '/post.md'));
 
-		let {adapters}= parsedFrontMatter;
-		adapters ??= [];
+		const adapters = parsedFrontMatter.adapters ?? [];
 
 		if (!Array.isArray(adapters)) fail('adapters is not an array');
 		else adapters.forEach(async (adapter: string) => {
+
 			let {adapterPlugins} = parseToml(await Deno.readTextFile('postr.toml'));
+
 			adapterPlugins ??= {};
 
 			if (!isObject(adapterPlugins)) fail('adapterPlugins in the configuration is not an object');
@@ -37,17 +38,27 @@ export async function handleRefresh(_argv: Args) {
 			import(adapterPath.path)
 				.then(async module => await module.publish(contents, parsedFrontMatter, adapterPath.config))
 				.catch(err => fail(`could not run adapter because of ${err.name}: ${err.message}`));
+
+			// TODO diagonstics
 		});
 	}
 }
 
-function extractFrontMatter(contents: string) {
-	const frontMatterRegex = /^\+{3}$([\s\S]+?)^\+{3}$/gim;
-
+function extractFrontMatter(contents: string): {parsedFrontMatter: Record<string, unknown>, contents: string} | never {
+	const frontMatterRegex = /^---$([\s\S]+?)^---$/gim;
 	const frontMatter = frontMatterRegex.exec(contents) ?? [];
-	const parsedFrontMatter = parseToml(frontMatter[1] ?? '');
+
+	if (!frontMatter[1]) fail('frontmatter is empty');
+
+	let parsedFrontMatter: Record<string, unknown> | undefined;
+
+	try {
+		parsedFrontMatter = parseToml(frontMatter[1]);
+	} catch (parseError) {
+		return fail('TOML Parse Error: ' + parseError);
+	}
 
 	return {parsedFrontMatter, contents: contents.replace(frontMatterRegex, '')}
 }
 
-const isObject = (thing: any) => Object.prototype.toString.call(thing) === '[object Object]';
+const isObject = (thing: unknown) => Object.prototype.toString.call(thing) === '[object Object]';

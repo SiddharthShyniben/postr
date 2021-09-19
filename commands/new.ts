@@ -16,5 +16,5 @@ export async function handleNew({_}: Args) {
 
 	await ensureFile(`posts/${slug}/post.md`)
 	await ensureDir(`posts/${slug}/assets/images`)
-	await Deno.writeTextFile(`posts/${slug}/post.md`, `---\ntitle: ${name}\n---\n\n_What amazing things will you write today?_`);
+	await Deno.writeTextFile(`posts/${slug}/post.md`, `---\ntitle = '${name}'\n---\n\n_What amazing things will you write today?_`);
 }
