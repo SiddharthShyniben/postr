@@ -8,13 +8,15 @@ const read = Deno.readTextFile;
  * Refresh (publish all due posts, unpublish all other, run plugins)
  */
 export async function handleRefresh(_argv: Args) {
-	if (!existsSync('postr.toml')) fail('not a postr directory')
+	if (!existsSync('postr.toml')) {
+		fail('not a postr directory');
+	}
 
 	const posts = expandGlob('posts/*');
 
 	for await (const post of posts) {
 		if (!post.isDirectory) {
-			console.warn('warning: non-folder found in posts directory')
+			console.warn('warning: non-folder found in posts directory');
 			continue;
 		}
 
@@ -26,7 +28,9 @@ export async function handleRefresh(_argv: Args) {
 			continue;
 		}
 
-		if (!shouldPostBeChecked(parsedFrontMatter)) continue;
+		if (!shouldPostBeChecked(parsedFrontMatter)) {
+			continue;
+		}
 
 		if (!Array.isArray(adapters)) {
 			fail('adapters is not an array');
@@ -49,22 +53,26 @@ export async function handleRefresh(_argv: Args) {
 				return;
 			}
 
-			if (!('path' in <any>adapterPath)) fail(`adapter ${adapter} does not have a path`);
+			if (!('path' in <any>adapterPath)) {
+				fail(`adapter ${adapter} does not have a path`);
+			}
 
 			import((<any>adapterPath).path)
 				.then(async module => await module.publish(contents, parsedFrontMatter, (<any>adapterPath).config))
-				.catch(err => fail(`could not run adapter because of ${err.name}: ${err.message}`));
+				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
 
 			// TODO diagonstics
 		});
 	}
 }
 
-function extractFrontMatter(contents: string): {parsedFrontMatter: Record<string, unknown>, contents: string} | never {
+function extractFrontMatter(contents: string): {parsedFrontMatter: Record<string, unknown>; contents: string} | never {
 	const frontMatterRegex = /^---$([\s\S]+?)^---$/gim;
 	const frontMatter = frontMatterRegex.exec(contents) ?? [];
 
-	if (!frontMatter[1]) fail('frontmatter is empty');
+	if (!frontMatter[1]) {
+		fail('frontmatter is empty');
+	}
 
 	let parsedFrontMatter: Record<string, unknown> | undefined;
 
@@ -74,7 +82,7 @@ function extractFrontMatter(contents: string): {parsedFrontMatter: Record<string
 		return fail('TOML Parse Error: ' + parseError);
 	}
 
-	return {parsedFrontMatter, contents: contents.replace(frontMatterRegex, '')}
+	return {parsedFrontMatter, contents: contents.replace(frontMatterRegex, '')};
 }
 
 const isObject = (thing: unknown): thing is Record<string, unknown> => Object.prototype.toString.call(thing) === '[object Object]';

@@ -1,7 +1,7 @@
 export const fail = (why: string) => {
 	console.error(`\u001B[31;1mfatal\u001B[0m ${why}`);
 	Deno.exit(1);
-}
+};
 
 export const highlight1 = (string: string) => `\u001B[32;1m${string}\u001B[0m`;
 export const highlight2 = (string: string) => `\u001B[31;1m${string}\u001B[0m`;
