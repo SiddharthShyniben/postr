@@ -21,6 +21,11 @@ export async function handleRefresh(_argv: Args) {
 		const {parsedFrontMatter, contents} = extractFrontMatter(await read(post.path + '/post.md'));
 		const adapters = parsedFrontMatter.adapters ?? [];
 
+		if (!parsedFrontMatter) {
+			fail('no frontmatter for ' + post.path);
+			continue;
+		}
+
 		if (!shouldPostBeChecked(parsedFrontMatter)) continue;
 
 		if (!Array.isArray(adapters)) {
@@ -44,10 +49,7 @@ export async function handleRefresh(_argv: Args) {
 				return;
 			}
 
-			if (!('path' in <any>adapterPath)) {
-				fail(`adapter ${adapter} does not have a path`);
-				return;
-			}
+			if (!('path' in <any>adapterPath)) fail(`adapter ${adapter} does not have a path`);
 
 			import((<any>adapterPath).path)
 				.then(async module => await module.publish(contents, parsedFrontMatter, (<any>adapterPath).config))

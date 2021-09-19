@@ -1,4 +1,5 @@
-import {Args, ensureFile, ensureDir, existsSync, slugify} from '../deps.ts';
+import {Args, ensureFile, ensureDir, existsSync, slugify, stringifyToml} from '../deps.ts';
+import {fillPost} from '../utils/post-checker.ts';
 import {fail} from '../utils/ui.ts';
 
 /*
@@ -16,5 +17,9 @@ export async function handleNew({_}: Args) {
 
 	await ensureFile(`posts/${slug}/post.md`)
 	await ensureDir(`posts/${slug}/assets/images`)
-	await Deno.writeTextFile(`posts/${slug}/post.md`, `---\ntitle = '${name}'\n---\n\n_What amazing things will you write today?_`);
+	await Deno.writeTextFile(`posts/${slug}/post.md`, `---\n${
+		stringifyToml(fillPost({
+			title: name.toString(),
+		}))
+	}\n---\n\n_What amazing things will you write today?_`);
 }
