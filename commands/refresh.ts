@@ -1,11 +1,16 @@
-import {Args, expandGlob, existsSync, parseToml} from '../deps.ts';
-import {shouldPostBeChecked} from '../utils/post-checker.ts';
+import {
+	Args,
+	expandGlob, existsSync,
+	parseToml, stringifyToml
+} from '../deps.ts';
+import {getActionForPost} from '../utils/post-checker.ts';
+import {addMapping} from '../utils/db.ts';
 import {fail} from '../utils/ui.ts';
 
 const read = Deno.readTextFile;
 
 /*
- * Refresh (publish all due posts, unpublish all other, run plugins)
+ * Refresh (run adapters)
  */
 export async function handleRefresh(_argv: Args) {
 	if (!existsSync('postr.toml')) {
@@ -15,20 +20,17 @@ export async function handleRefresh(_argv: Args) {
 	const posts = expandGlob('posts/*');
 
 	for await (const post of posts) {
+		console.log('Checking post ', post.path)
 		if (!post.isDirectory) {
 			console.warn('warning: non-folder found in posts directory');
 			continue;
 		}
 
-		const {parsedFrontMatter, contents} = extractFrontMatter(await read(post.path + '/post.md'));
+		let {parsedFrontMatter, contents} = extractFrontMatter(await read(post.path + '/post.md'));
 		const adapters = parsedFrontMatter.adapters ?? [];
 
 		if (!parsedFrontMatter) {
 			fail('no frontmatter for ' + post.path);
-			continue;
-		}
-
-		if (!shouldPostBeChecked(parsedFrontMatter)) {
 			continue;
 		}
 
@@ -58,10 +60,35 @@ export async function handleRefresh(_argv: Args) {
 			}
 
 			import((<any>adapterPath).path)
-				.then(async module => await module.publish(contents, parsedFrontMatter, (<any>adapterPath).config))
-				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
+				.then(async module => {
+					const action = getActionForPost(parsedFrontMatter);
+					console.log(`${action}ing ${post.path.split('/').pop()}`)
 
-			// TODO diagonstics
+					if (module[action]) {
+						await module[action](contents, parsedFrontMatter, (<any>adapterPath).config, {
+							updateFrontMatter(newData: {[x: string]: any}) {
+								parsedFrontMatter = Object.assign(parsedFrontMatter, newData);
+							},
+							mapID(remote: string | number) {
+								addMapping(parsedFrontMatter.id as string, remote.toString(), adapter);
+							}
+						})
+					} else {
+						console.warn(`Adapter ${adapter} does not support action \`${action}\``);
+					}
+
+					const finalFrontMatter = stringifyToml(parsedFrontMatter);
+					const finalContents = [
+						`---`,
+						finalFrontMatter,
+						`---`,
+						'',
+						contents
+					].join('\n');
+
+					Deno.writeTextFile(post.path + '/post.md', finalContents);
+				})
+				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
 		});
 	}
 }
