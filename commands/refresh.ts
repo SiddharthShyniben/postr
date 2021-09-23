@@ -1,5 +1,4 @@
 import {
-	Args,
 	expandGlob, existsSync,
 	parseToml, stringifyToml
 } from '../deps.ts';
@@ -12,7 +11,7 @@ const read = Deno.readTextFile;
 /*
  * Refresh (run adapters)
  */
-export async function handleRefresh(_argv: Args) {
+export async function handleRefresh() {
 	if (!existsSync('postr.toml')) {
 		fail('not a postr directory');
 	}
@@ -20,7 +19,6 @@ export async function handleRefresh(_argv: Args) {
 	const posts = expandGlob('posts/*');
 
 	for await (const post of posts) {
-		console.log('Checking post ', post.path)
 		if (!post.isDirectory) {
 			console.warn('warning: non-folder found in posts directory');
 			continue;
@@ -65,10 +63,10 @@ export async function handleRefresh(_argv: Args) {
 				return;
 			}
 
+			// Main action happens here
 			import((<any>adapterPath).path)
 				.then(async module => {
 					const action = getActionForPost(parsedFrontMatter);
-					console.log(`${action}ing ${post.path.split('/').pop()}`)
 
 					if (module[action]) {
 						await module[action](contents, parsedFrontMatter, (<any>adapterPath).config, {
@@ -78,23 +76,16 @@ export async function handleRefresh(_argv: Args) {
 							mapID(remote: string | number) {
 								addMapping(parsedFrontMatter.id as string, remote.toString(), adapter);
 							}
-						})
+						});
 					} else {
 						console.warn(`Adapter ${adapter} does not support action \`${action}\``);
+						return;
 					}
 
-					const finalFrontMatter = stringifyToml(parsedFrontMatter);
-					const finalContents = [
-						`---`,
-						finalFrontMatter,
-						`---`,
-						'',
-						contents
-					].join('\n');
-
-					Deno.writeTextFile(post.path + '/post.md', finalContents);
+					writeFinalContents(parsedFrontMatter, contents, post.path)
 				})
 				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
+
 		});
 	}
 }
@@ -116,6 +107,20 @@ function extractFrontMatter(contents: string): {parsedFrontMatter: Record<string
 	}
 
 	return {parsedFrontMatter, contents: contents.replace(frontMatterRegex, '')};
+}
+
+function writeFinalContents(frontMatter: any, contents: string, path: string) {
+	const finalFrontMatter = stringifyToml(frontMatter);
+	const finalContents = [
+		`---`,
+		finalFrontMatter,
+		`---`,
+		'',
+		contents
+	].join('\n');
+
+	Deno.writeTextFile(path + '/post.md', finalContents);
+
 }
 
 const isObject = (thing: unknown): thing is Record<string, unknown> => Object.prototype.toString.call(thing) === '[object Object]';
