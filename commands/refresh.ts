@@ -3,7 +3,7 @@ import {
 	expandGlob, existsSync,
 	parseToml, stringifyToml
 } from '../deps.ts';
-import {getActionForPost} from '../utils/post-checker.ts';
+import {getActionForPost, isValidFrontMatter} from '../utils/post-checker.ts';
 import {addMapping} from '../utils/db.ts';
 import {fail} from '../utils/ui.ts';
 
@@ -39,6 +39,11 @@ export async function handleRefresh(_argv: Args) {
 			continue;
 		}
 
+		if (isValidFrontMatter(parsedFrontMatter)) {
+			fail('frontmatter is not valid');
+			continue;
+		}
+
 		adapters.forEach(async (adapter: string) => {
 			const adapterPlugins = parseToml(await read('postr.toml')).adapterPlugins ?? {};
 
@@ -57,6 +62,7 @@ export async function handleRefresh(_argv: Args) {
 
 			if (!('path' in <any>adapterPath)) {
 				fail(`adapter ${adapter} does not have a path`);
+				return;
 			}
 
 			import((<any>adapterPath).path)
