@@ -2,8 +2,9 @@ import {
 	expandGlob, existsSync,
 	parseToml, stringifyToml
 } from '../deps.ts';
+
 import {getActionForPost, isValidFrontMatter} from '../utils/post-checker.ts';
-import {addMapping} from '../utils/db.ts';
+import {addMapping, getMapping} from '../utils/db.ts';
 import {fail} from '../utils/ui.ts';
 
 const read = Deno.readTextFile;
@@ -37,7 +38,7 @@ export async function handleRefresh() {
 			continue;
 		}
 
-		if (isValidFrontMatter(parsedFrontMatter)) {
+		if (!isValidFrontMatter(parsedFrontMatter)) {
 			fail('frontmatter is not valid');
 			continue;
 		}
@@ -69,14 +70,24 @@ export async function handleRefresh() {
 					const action = getActionForPost(parsedFrontMatter);
 
 					if (module[action]) {
-						await module[action](contents, parsedFrontMatter, (<any>adapterPath).config, {
+						const handler = {
 							updateFrontMatter(newData: {[x: string]: any}) {
 								parsedFrontMatter = Object.assign(parsedFrontMatter, newData);
 							},
 							mapID(remote: string | number) {
 								addMapping(parsedFrontMatter.id as string, remote.toString(), adapter);
 							}
-						});
+						}
+
+						if (action === 'update') {
+							await module.update(
+								contents,
+								parsedFrontMatter,
+								(<any>adapterPath).config,
+								handler,
+								await getMapping((<any>parsedFrontMatter).id)
+							);
+						} else await module[action](contents, parsedFrontMatter, (<any>adapterPath).config, handler);
 					} else {
 						console.warn(`Adapter ${adapter} does not support action \`${action}\``);
 						return;
@@ -85,7 +96,6 @@ export async function handleRefresh() {
 					writeFinalContents(parsedFrontMatter, contents, post.path)
 				})
 				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
-
 		});
 	}
 }
@@ -120,7 +130,6 @@ function writeFinalContents(frontMatter: any, contents: string, path: string) {
 	].join('\n');
 
 	Deno.writeTextFile(path + '/post.md', finalContents);
-
 }
 
 const isObject = (thing: unknown): thing is Record<string, unknown> => Object.prototype.toString.call(thing) === '[object Object]';

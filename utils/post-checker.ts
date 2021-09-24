@@ -1,7 +1,7 @@
 import {Post} from '../post.ts';
 import {nanoid} from '../deps.ts';
 
-type postStatus = 'draftPublish' |
+export type postStatus = 'draftPublish' |
 	'publish' |
 	'unpublish' |
 	'update' |
