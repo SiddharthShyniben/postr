@@ -95,7 +95,7 @@ export async function handleRefresh() {
 
 					writeFinalContents(parsedFrontMatter, contents, post.path)
 				})
-				.catch(error => fail(`could not run adapter because of ${error.name}: ${error.message}`));
+				.catch(error => fail(`could not run adapter because of ${error}`));
 		});
 	}
 }

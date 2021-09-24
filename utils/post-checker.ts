@@ -1,11 +1,13 @@
 import {Post} from '../post.ts';
 import {nanoid} from '../deps.ts';
 
-export type postStatus = 'draftPublish' |
+export type postStatus =
+	'draftPublish' |
 	'publish' |
 	'unpublish' |
 	'update' |
 	'delete' |
+	'undraft' |
 	'noop';
 
 export const fillPost = (post: Partial<Post>): Post => Object.assign({
@@ -20,6 +22,7 @@ export const getActionForPost = (post: Partial<Post>): postStatus => {
 	console.log(post);
 
 	if (post.modified) {
+		if (post.draft && post.published) return 'undraft';
 		if (post.draft) return 'draftPublish';
 		if (post.published) return 'update';
 
