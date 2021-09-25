@@ -20,6 +20,7 @@ export async function handleRefresh() {
 	const posts = expandGlob('posts/*');
 
 	for await (const post of posts) {
+
 		if (!post.isDirectory) {
 			console.warn('warning: non-folder found in posts directory');
 			continue;
@@ -29,17 +30,17 @@ export async function handleRefresh() {
 		const adapters = parsedFrontMatter.adapters ?? [];
 
 		if (!parsedFrontMatter) {
-			fail('no frontmatter for ' + post.path);
+			console.warn(`no frontmatter for ${post.path}. Skipping`);
 			continue;
 		}
 
 		if (!Array.isArray(adapters)) {
-			fail('adapters is not an array');
+			console.warn(`adapters is not an array in post ${post.path}. Skipping`);
 			continue;
 		}
 
 		if (!isValidFrontMatter(parsedFrontMatter)) {
-			fail('frontmatter is not valid');
+			console.log(`frontmatter is not valid in post ${post.path}. Skipping`);
 			continue;
 		}
 
@@ -47,8 +48,7 @@ export async function handleRefresh() {
 			const adapterPlugins = parseToml(await read('postr.toml')).adapterPlugins ?? {};
 
 			if (!isObject(adapterPlugins)) {
-				fail('adapterPlugins in the configuration is not an object');
-				return;
+				return fail('adapterPlugins in the configuration is not an object');
 			}
 
 			const adapterPath = adapterPlugins[adapter];
@@ -60,8 +60,7 @@ export async function handleRefresh() {
 			}
 
 			if (!('path' in <any>adapterPath)) {
-				fail(`adapter ${adapter} does not have a path`);
-				return;
+				return fail(`adapter ${adapter} does not have a path`);
 			}
 
 			// Main action happens here
@@ -89,8 +88,7 @@ export async function handleRefresh() {
 							);
 						} else await module[action](contents, parsedFrontMatter, (<any>adapterPath).config, handler);
 					} else {
-						console.warn(`Adapter ${adapter} does not support action \`${action}\``);
-						return;
+						return console.warn(`Adapter ${adapter} does not support action \`${action}\``);
 					}
 
 					writeFinalContents(parsedFrontMatter, contents, post.path)
